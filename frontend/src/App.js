@@ -6,7 +6,7 @@ function App() {
   const [ingredientList, setIngredientList] = useState([]);
 
   const [servings, setServings] = useState(3);
-  const [diet, setDiet] = useState("normal");
+  const [diet, setDiet] = useState("regular");
   const [days, setDays] = useState(7);
 
   const [recipes, setRecipes] = useState([]);
@@ -42,9 +42,9 @@ function App() {
           type="text"
           value={ingredient}
           onChange={(e) => setIngredient(e.target.value)}
-          placeholder="Skriv en ingrediens..."
+          placeholder="Enter an ingredient..."
         />
-        <button onClick={addIngredient}>Lägg till</button>
+        <button onClick={addIngredient}>Add</button>
       </div>
 
       <ul className="ingredient-list">
@@ -57,7 +57,7 @@ function App() {
       </ul>
 
       <div className="filters">
-        <label>Antal personer:</label>
+        <label>Number of people:</label>
         <select value={servings} onChange={(e) => setServings(e.target.value)}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <option key={n} value={n}>
@@ -66,29 +66,30 @@ function App() {
           ))}
         </select>
 
-        <label>Kosttyp:</label>
+        <label>Diet type:</label>
         <select value={diet} onChange={(e) => setDiet(e.target.value)}>
-          <option value="normal">Allmän kost</option>
-          <option value="vegetarian">Vegetarisk</option>
-          <option value="lactose-free">Laktosfri</option>
+          <option value="regular">Regular</option>
+          <option value="vegetarian">Vegetarian</option>
+          <option value="vegan">Vegan</option>
+          <option value="gluten-free">Gluten-Free</option>
         </select>
 
-        <label>Antal dagar:</label>
+        <label>Days of meal plan:</label>
         <select value={days} onChange={(e) => setDays(e.target.value)}>
           {[1, 2, 3, 4, 5, 6, 7].map((day) => (
             <option key={day} value={day}>
-              {day} dagar
+              {day}
             </option>
           ))}
         </select>
       </div>
 
       <button className="generate-btn" onClick={fetchRecipes}>
-        Generera recept 🔍
+        Generate recipes 🔍
       </button>
 
       <div className="recipe-results">
-        {recipes.length > 0 && <h2>Receptförslag</h2>}
+        {recipes.length > 0 && <h2>Recipe Suggestions</h2>}
         {recipes.map((recipe) => (
           <div key={recipe.id} className="recipe-card">
             <h3>{recipe.title}</h3>
