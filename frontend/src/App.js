@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "./data/recipes"; 
 import "./App.css";
 
 function App() {
@@ -21,17 +21,17 @@ function App() {
     setIngredientList(ingredientList.filter((_, i) => i !== index));
   };
 
-  const fetchRecipes = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:3001/recipes?ingredients=${ingredientList.join(",")}&servings=${servings}&diet=${diet}&days=${days}`
-      );
-      const data = await response.json();
-      setRecipes(data);
-    } catch (error) {
-      console.error("Error fetching recipes:", error);
-    }
-  };
+  const fetchRecipes = () => {
+  const filtered = recipesData.filter(recipe =>
+    recipe.persons === Number(servings) &&
+    recipe.diet === diet &&
+    ingredientList.every(ing =>
+      recipe.ingredients.includes(ing.toLowerCase())
+    )
+  );
+
+  setRecipes(filtered.slice(0, days));
+};
 
   return (
     <div className="container">
