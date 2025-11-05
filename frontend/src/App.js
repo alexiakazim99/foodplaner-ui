@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import { recipes } from "./recipes"; // <-- viktigt: samma namn som export i recipes.js
+import { recipes } from "./recipes";
 
 function App() {
   const [ingredient, setIngredient] = useState("");
@@ -10,7 +10,7 @@ function App() {
   const [diet, setDiet] = useState("regular");
   const [days, setDays] = useState(7);
 
-  const [recipesResult, setRecipesResult] = useState([]);
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
 
   const addIngredient = () => {
     if (ingredient.trim() === "") return;
@@ -22,54 +22,64 @@ function App() {
     setIngredientList(ingredientList.filter((_, i) => i !== index));
   };
 
-  // ✅ HÄR filtreras recepten från recipes.js dataset
   const fetchRecipes = () => {
-    const filteredRecipes = recipes.filter((recipe) => {
-      const servingsMatch = recipe.servings === Number(servings);
-      const dietMatch = recipe.diet === diet;
+    console.log("Searching with:", { ingredientList, servings, diet, days });
 
-      // ingrediensmatch: minst 1 matchar
-      const ingredientsMatch = ingredientList.every((ing) =>
-        recipe.ingredients.some((item) => item.toLowerCase().includes(ing))
-      );
+    let result = recipes.filter(recipe => {
+      // 1. Kolla diet
+      const dietMatch = diet === "regular" || recipe.diet === diet;
+      
+      // 2. Kolla ingredienser (OM användaren angett några)
+      const ingredientMatch = ingredientList.length === 0 || 
+        ingredientList.some(userIng =>
+          recipe.ingredients.some(recipeIng => 
+            recipeIng.toLowerCase().includes(userIng.toLowerCase())
+          )
+        );
 
-      return servingsMatch && dietMatch && ingredientsMatch;
+      return dietMatch && ingredientMatch;
     });
 
-    // visa max antal dagar
-    setRecipesResult(filteredRecipes.slice(0, days));
+    console.log("Found recipes:", result.length);
+
+    // Ta max antal dagar
+    setFilteredRecipes(result.slice(0, Number(days)));
   };
 
   return (
     <div className="container">
       <h1>FoodPlanner 🍽</h1>
 
+      {/* INGREDIENT INPUT */}
       <div className="input-area">
         <input
           type="text"
           value={ingredient}
           onChange={(e) => setIngredient(e.target.value)}
+          onKeyPress={(e) => e.key === "Enter" && addIngredient()}
           placeholder="Enter an ingredient..."
         />
         <button onClick={addIngredient}>Add</button>
       </div>
 
-      <ul className="ingredient-list">
-        {ingredientList.map((ing, index) => (
-          <li key={index}>
-            {ing}
-            <button onClick={() => removeIngredient(index)}>❌</button>
-          </li>
-        ))}
-      </ul>
+      {/* INGREDIENT LIST */}
+      {ingredientList.length > 0 && (
+        <ul className="ingredient-list">
+          {ingredientList.map((ing, index) => (
+            <li key={index}>
+              {ing}
+              <button onClick={() => removeIngredient(index)}>❌</button>
+            </li>
+          ))}
+        </ul>
+      )}
 
+      {/* FILTERS */}
       <div className="filters">
         <label>Number of people:</label>
         <select value={servings} onChange={(e) => setServings(e.target.value)}>
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
+            <option key={n} value={n}>{n}</option>
           ))}
         </select>
 
@@ -77,17 +87,13 @@ function App() {
         <select value={diet} onChange={(e) => setDiet(e.target.value)}>
           <option value="regular">Regular</option>
           <option value="vegetarian">Vegetarian</option>
-          <option value="vegan">Vegan</option>
           <option value="lactose-free">Lactose-Free</option>
-          <option value="gluten-free">Gluten-Free</option>
         </select>
 
         <label>Days of meal plan:</label>
         <select value={days} onChange={(e) => setDays(e.target.value)}>
-          {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-            <option key={day} value={day}>
-              {day}
-            </option>
+          {[1, 2, 3, 4, 5, 6, 7].map(day => (
+            <option key={day} value={day}>{day}</option>
           ))}
         </select>
       </div>
@@ -96,14 +102,20 @@ function App() {
         Generate recipes 🔍
       </button>
 
+      {/* RESULTS */}
       <div className="recipe-results">
-        {recipesResult.length > 0 && <h2>Recipe Suggestions</h2>}
+        {filteredRecipes.length > 0 && <h2>Recipe Suggestions ({filteredRecipes.length})</h2>}
+        
+        {filteredRecipes.length === 0 && ingredientList.length > 0 && (
+          <p>No recipes found with those ingredients 😢 Try fewer or different ones!</p>
+        )}
 
-        {recipesResult.map((recipe, index) => (
+        {filteredRecipes.map((recipe) => (
           <div key={recipe.id} className="recipe-card">
-            <h3>Day {index + 1}: {recipe.title}</h3>
+            <h3>{recipe.title}</h3>
             <img src={recipe.image} alt={recipe.title} width="200" />
-            <p><b>Ingredients:</b> {recipe.ingredients.join(", ")}</p>
+            <p><strong>Servings:</strong> {recipe.servings}</p>
+            <p><strong>Ingredients:</strong> {recipe.ingredients.join(", ")}</p>
           </div>
         ))}
       </div>
