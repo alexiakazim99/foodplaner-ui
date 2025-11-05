@@ -1,5 +1,6 @@
-import { useState } from "./data/recipes"; 
+import { useState } from "react";
 import "./App.css";
+import { recipes } from "./recipes"; // <-- viktigt: samma namn som export i recipes.js
 
 function App() {
   const [ingredient, setIngredient] = useState("");
@@ -9,11 +10,11 @@ function App() {
   const [diet, setDiet] = useState("regular");
   const [days, setDays] = useState(7);
 
-  const [recipes, setRecipes] = useState([]);
+  const [recipesResult, setRecipesResult] = useState([]);
 
   const addIngredient = () => {
     if (ingredient.trim() === "") return;
-    setIngredientList([...ingredientList, ingredient]);
+    setIngredientList([...ingredientList, ingredient.toLowerCase()]);
     setIngredient("");
   };
 
@@ -21,17 +22,23 @@ function App() {
     setIngredientList(ingredientList.filter((_, i) => i !== index));
   };
 
+  // ✅ HÄR filtreras recepten från recipes.js dataset
   const fetchRecipes = () => {
-  const filtered = recipesData.filter(recipe =>
-    recipe.persons === Number(servings) &&
-    recipe.diet === diet &&
-    ingredientList.every(ing =>
-      recipe.ingredients.includes(ing.toLowerCase())
-    )
-  );
+    const filteredRecipes = recipes.filter((recipe) => {
+      const servingsMatch = recipe.servings === Number(servings);
+      const dietMatch = recipe.diet === diet;
 
-  setRecipes(filtered.slice(0, days));
-};
+      // ingrediensmatch: minst 1 matchar
+      const ingredientsMatch = ingredientList.every((ing) =>
+        recipe.ingredients.some((item) => item.toLowerCase().includes(ing))
+      );
+
+      return servingsMatch && dietMatch && ingredientsMatch;
+    });
+
+    // visa max antal dagar
+    setRecipesResult(filteredRecipes.slice(0, days));
+  };
 
   return (
     <div className="container">
@@ -71,6 +78,7 @@ function App() {
           <option value="regular">Regular</option>
           <option value="vegetarian">Vegetarian</option>
           <option value="vegan">Vegan</option>
+          <option value="lactose-free">Lactose-Free</option>
           <option value="gluten-free">Gluten-Free</option>
         </select>
 
@@ -89,11 +97,13 @@ function App() {
       </button>
 
       <div className="recipe-results">
-        {recipes.length > 0 && <h2>Recipe Suggestions</h2>}
-        {recipes.map((recipe) => (
+        {recipesResult.length > 0 && <h2>Recipe Suggestions</h2>}
+
+        {recipesResult.map((recipe, index) => (
           <div key={recipe.id} className="recipe-card">
-            <h3>{recipe.title}</h3>
+            <h3>Day {index + 1}: {recipe.title}</h3>
             <img src={recipe.image} alt={recipe.title} width="200" />
+            <p><b>Ingredients:</b> {recipe.ingredients.join(", ")}</p>
           </div>
         ))}
       </div>
